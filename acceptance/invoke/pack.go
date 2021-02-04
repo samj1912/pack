@@ -63,7 +63,9 @@ func NewPackInvoker(
 }
 
 func (i *PackInvoker) Cleanup() {
-	i.testObject.Helper()
+	if i == nil {
+		return
+	}
 
 	err := os.RemoveAll(i.home)
 	i.assert.Nil(err)
@@ -221,6 +223,7 @@ const (
 	NoColorInBuildpacks
 	QuietMode
 	InspectBuilderOutputFormat
+	InspectImageRemote
 	OSInPackageTOML
 )
 
@@ -251,6 +254,9 @@ var featureTests = map[Feature]func(i *PackInvoker) bool{
 	},
 	InspectBuilderOutputFormat: func(i *PackInvoker) bool {
 		return i.laterThan("0.14.2")
+	},
+	InspectImageRemote: func(i *PackInvoker) bool {
+		return i.laterThan("0.17.0")
 	},
 	OSInPackageTOML: func(i *PackInvoker) bool {
 		return i.laterThan("0.15.0")

@@ -45,4 +45,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
 )
 
+replace github.com/buildpacks/imgutil => github.com/dwillist/imgutil v0.0.0-20210203233218-00d25b882b8a
+
 go 1.14

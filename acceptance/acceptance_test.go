@@ -1756,6 +1756,11 @@ func testAcceptance(
 
 					when("--publish", func() {
 						it("creates image on the registry", func() {
+							h.SkipUnless(t,
+								pack.SupportsFeature(invoke.InspectImageRemote),
+								"inspect-image remote image inspection unimplemented",
+							)
+
 							buildArgs := []string{
 								repoName,
 								"-p", filepath.Join("testdata", "mock_app"),
@@ -1775,21 +1780,8 @@ func testAcceptance(
 								t.Fatalf("Expected to see image %s in %s", repo, contents)
 							}
 
-							assert.Succeeds(h.PullImageWithAuth(dockerCli, repoName, registryConfig.RegistryAuth()))
-							defer h.DockerRmi(dockerCli, repoName)
-
-							t.Log("app is runnable")
-							assertMockAppRunsWithOutput(t,
-								assert,
-								repoName,
-								"Launch Dep Contents",
-								"Cached Dep Contents",
-							)
-
 							if pack.Supports("inspect-image --output") {
 								t.Log("inspect-image")
-								output = pack.RunSuccessfully("inspect-image", repoName)
-
 								var (
 									webCommand      string
 									helloCommand    string
@@ -1850,6 +1842,18 @@ func testAcceptance(
 
 									format.compareFunc(output, expectedOutput)
 								}
+
+								// Pull image after inspecting otherwise we end up with an extra local image
+								assert.Succeeds(h.PullImageWithAuth(dockerCli, repoName, registryConfig.RegistryAuth()))
+								defer h.DockerRmi(dockerCli, repoName)
+
+								t.Log("app is runnable")
+								assertMockAppRunsWithOutput(t,
+									assert,
+									repoName,
+									"Launch Dep Contents",
+									"Cached Dep Contents",
+								)
 							}
 						})
 
