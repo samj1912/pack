@@ -360,7 +360,7 @@ func testWithoutSpecificBuilderRequirement(
 	})
 
 	when("buildpack", func() {
-		when("buildpack package", func() {
+		when("package", func() {
 			var (
 				tmpDir                         string
 				buildpackManager               buildpacks.BuildpackManager
@@ -638,7 +638,7 @@ func testWithoutSpecificBuilderRequirement(
 			})
 		})
 
-		when("buildpack", func() {
+		when("inspect", func() {
 			var tmpDir string
 
 			it.Before(func() {
@@ -652,75 +652,70 @@ func testWithoutSpecificBuilderRequirement(
 			})
 
 			when("buildpack archive", func() {
-				when("buildpack", func() {
-					it("succeeds", func() {
+				it("succeeds", func() {
 
-						packageFileLocation := filepath.Join(
-							tmpDir,
-							fmt.Sprintf("buildpack-%s.cnb", h.RandString(8)),
-						)
+					packageFileLocation := filepath.Join(
+						tmpDir,
+						fmt.Sprintf("buildpack-%s.cnb", h.RandString(8)),
+					)
 
-						packageTomlPath := generatePackageTomlWithOS(t, assert, pack, tmpDir, "package_for_build_cmd.toml", dockerHostOS())
+					packageTomlPath := generatePackageTomlWithOS(t, assert, pack, tmpDir, "package_for_build_cmd.toml", dockerHostOS())
 
-						packageFile := buildpacks.NewPackageFile(
-							t,
-							pack,
-							packageFileLocation,
-							packageTomlPath,
-							buildpacks.WithRequiredBuildpacks(
-								buildpacks.FolderSimpleLayersParent,
-								buildpacks.FolderSimpleLayers,
-							),
-						)
+					packageFile := buildpacks.NewPackageFile(
+						t,
+						pack,
+						packageFileLocation,
+						packageTomlPath,
+						buildpacks.WithRequiredBuildpacks(
+							buildpacks.FolderSimpleLayersParent,
+							buildpacks.FolderSimpleLayers,
+						),
+					)
 
-						buildpackManager.PrepareBuildpacks(tmpDir, packageFile)
+					buildpackManager.PrepareBuildpacks(tmpDir, packageFile)
 
-						expectedOutput := pack.FixtureManager().TemplateFixture(
-							"inspect_buildpack_output.txt",
-							map[string]interface{}{
-								"buildpack_source": "LOCAL ARCHIVE",
-								"buildpack_name":   packageFileLocation,
-							},
-						)
+					expectedOutput := pack.FixtureManager().TemplateFixture(
+						"inspect_buildpack_output.txt",
+						map[string]interface{}{
+							"buildpack_source": "LOCAL ARCHIVE",
+							"buildpack_name":   packageFileLocation,
+						},
+					)
 
-						output := pack.RunSuccessfully("buildpack", "inspect", packageFileLocation)
-						assert.TrimmedEq(output, expectedOutput)
-					})
+					output := pack.RunSuccessfully("buildpack", "inspect", packageFileLocation)
+					assert.TrimmedEq(output, expectedOutput)
 				})
-
 			})
 
 			when("buildpack image", func() {
-				when("inspect", func() {
-					it("succeeds", func() {
-						packageTomlPath := generatePackageTomlWithOS(t, assert, pack, tmpDir, "package_for_build_cmd.toml", dockerHostOS())
-						packageImageName := registryConfig.RepoName("buildpack-" + h.RandString(8))
+				it("succeeds", func() {
+					packageTomlPath := generatePackageTomlWithOS(t, assert, pack, tmpDir, "package_for_build_cmd.toml", dockerHostOS())
+					packageImageName := registryConfig.RepoName("buildpack-" + h.RandString(8))
 
-						packageImage := buildpacks.NewPackageImage(
-							t,
-							pack,
-							packageImageName,
-							packageTomlPath,
-							buildpacks.WithRequiredBuildpacks(
-								buildpacks.FolderSimpleLayersParent,
-								buildpacks.FolderSimpleLayers,
-							),
-						)
-						defer h.DockerRmi(dockerCli, packageImageName)
+					packageImage := buildpacks.NewPackageImage(
+						t,
+						pack,
+						packageImageName,
+						packageTomlPath,
+						buildpacks.WithRequiredBuildpacks(
+							buildpacks.FolderSimpleLayersParent,
+							buildpacks.FolderSimpleLayers,
+						),
+					)
+					defer h.DockerRmi(dockerCli, packageImageName)
 
-						buildpackManager.PrepareBuildpacks(tmpDir, packageImage)
+					buildpackManager.PrepareBuildpacks(tmpDir, packageImage)
 
-						expectedOutput := pack.FixtureManager().TemplateFixture(
-							"inspect_buildpack_output.txt",
-							map[string]interface{}{
-								"buildpack_source": "LOCAL IMAGE",
-								"buildpack_name":   packageImageName,
-							},
-						)
+					expectedOutput := pack.FixtureManager().TemplateFixture(
+						"inspect_buildpack_output.txt",
+						map[string]interface{}{
+							"buildpack_source": "LOCAL IMAGE",
+							"buildpack_name":   packageImageName,
+						},
+					)
 
-						output := pack.RunSuccessfully("buildpack", "inspect", packageImageName)
-						assert.TrimmedEq(output, expectedOutput)
-					})
+					output := pack.RunSuccessfully("buildpack", "inspect", packageImageName)
+					assert.TrimmedEq(output, expectedOutput)
 				})
 			})
 		})
