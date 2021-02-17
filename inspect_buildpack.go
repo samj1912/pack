@@ -37,6 +37,14 @@ func (iw ImgWrapper) Label(name string) (string, error) {
 	return iw.Labels[name], nil
 }
 
+// InspectBuildpack attempt to inspect a buildpack using the options provided in opts
+// It will have the following behavior depending on buildpack type:
+// - registry buildpack: use provided Registry and buildpack name to attempt lookup
+//      if no buildpack is found returns error
+// - buildpack image: attempt to lookup image name BuildpackName using daemon if Daemon = true
+//      otherwise attempt remote lookup. If no buildpack is found return ErrNotFound
+// - buildpack URL: attempt to download if http or https URL, then open and inspect buildpack.toml file.
+//      error if unable to download, buildpack is malformed or path does not exist.
 func (c *Client) InspectBuildpack(opts InspectBuildpackOptions) (*BuildpackInfo, error) {
 	locatorType, err := buildpack.GetLocatorType(opts.BuildpackName, "", []dist.BuildpackInfo{})
 	if err != nil {
@@ -135,6 +143,7 @@ func extractOrder(buildpackMd buildpackage.Metadata) dist.Order {
 	}
 }
 
+// TODO -DAN- order is likely not preserved :(
 func extractBuildpacks(layersMd dist.BuildpackLayers) []dist.BuildpackInfo {
 	result := []dist.BuildpackInfo{}
 	buildpackSet := map[*dist.BuildpackInfo]bool{}
