@@ -1666,7 +1666,7 @@ func testAcceptance(
 						})
 					})
 
-					when.Focus("ctrl+c", func() {
+					when("ctrl+c", func() {
 						it("stops the execution", func() {
 							var buf = new(bytes.Buffer)
 							command := pack.StartWithWriter(
